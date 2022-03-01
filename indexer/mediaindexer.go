@@ -26,7 +26,7 @@ var list map[string]FileItem
 var jsonfile string
 var jsfile string
 
-func convertMP4(root string) {
+func convertMP4(root, www string) {
 	// convert the videos to mp4
 	fmt.Println("Checking for non MP4 videos ...")
 	filepath.WalkDir(root, func(s string, d fs.DirEntry, e error) error {
@@ -42,27 +42,39 @@ func convertMP4(root string) {
 	})
 }
 
-func segmentVideo(root string) {	
+func segmentVideo(root, www string) {	
 	// segmentize videos
 	fmt.Println("Checking for long MP4 videos ...")
 	filepath.WalkDir(root, func(s string, d fs.DirEntry, e error) error {
 		if e != nil {
 			return e
 		}
-		// get video info
-		probe := ffprobe_video(s)
-		duration := extract_duration(probe)
-		// segmentize video if longer than 20 secs
-		if duration > 20 {
-			hash, err := chunk_md5(s, HASHLEN)
-			if err != nil {
-				return err
-			}
-			if ffmpeg_segment(hash, s, 20) {
-				// remove the original file
-				os.Remove(s)
-				// sleep after segmentation
-				time.Sleep(time.Duration(100) * time.Millisecond)
+
+		// ignore items if we are inside the www directory
+		wwwmp4 := www + "mp4/"
+		if strings.HasPrefix(s, wwwmp4) {
+			return nil
+		}
+		// already segmented
+		if strings.HasPrefix(filepath.Base(s), "part.") {
+			return nil
+		}
+		if !d.IsDir() && IsFileType(s, SupportedVideos) {
+			// get video info
+			probe := ffprobe_video(s)
+			duration := extract_duration(probe)
+			// segmentize video if longer than 20 secs
+			if duration > 20 {
+				hash, err := chunk_md5(s, HASHLEN)
+				if err != nil {
+					return err
+				}
+				if ffmpeg_segment(hash, s, 20) {
+					// remove the original file
+					os.Remove(s)
+					// sleep after segmentation
+					time.Sleep(time.Duration(100) * time.Millisecond)
+				}
 			}
 		}
 		return nil
@@ -262,6 +274,13 @@ func Run() {
 			fmt.Println("JSON DB Parse Failed:", jsonfile, err)
 			return
 		}
+
+		// make sure the added files are still okay
+		for hash, item := range list {
+			if !fileExists(item.Path) {
+				delete(list, hash)
+			}
+		}
 	}
 
 	tot := 0
@@ -276,8 +295,10 @@ func Run() {
 		wg.Add(1)
 		// spawn bg processor for ffmpeg
 		go func() {
-			convertMP4(*root)
-			segmentVideo(*root)
+			defer wg.Done()
+			convertMP4(*root, www)
+			segmentVideo(*root, www)
+			fmt.Println("FFMPeg processes finished!")
 		}()
 
 		// start adding, wait until data on channel
