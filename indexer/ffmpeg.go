@@ -35,7 +35,7 @@ func ffprobe_video(vid string) string {
 	// run
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Println("PROBE ERROR:", vid)
+		fmt.Println("\nPROBE ERROR:", vid)
 		return ""
 	}
 
@@ -76,7 +76,7 @@ func ffmpeg_convert_mp4(vid string) bool {
 	fmt.Printf("\nConverting %s ... ", vid)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Println("ERROR\n", string(out))
+		fmt.Println("ERROR\n", string(out))
 		return false
 	}
 	fmt.Printf("OK %s\n", out)
@@ -107,7 +107,7 @@ func ffmpeg_segment(hash string, vid string, seglength int) bool {
 	fmt.Printf("\nSegmenting %s ... ", vid)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Println("ERROR\n", string(out))
+		fmt.Println("ERROR\n", string(out))
 		return false
 	}
 	fmt.Printf("OK %s\n", out)
@@ -144,7 +144,7 @@ func ffmpeg_create_poster(hash string, vid string, duration float32) []string {
 		// fmt.Println(cmd.String())
 		out, err := cmd.CombinedOutput()
 		if err != nil {
-			log.Println("Error", vid, string(out))
+			fmt.Println("Error", vid, string(out))
 		}
 		fmt.Println(fmtout)
 		fmt.Printf("%s\n", out)

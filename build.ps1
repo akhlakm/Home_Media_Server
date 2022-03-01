@@ -1,6 +1,7 @@
 # Build for linux deployment
 
 $Env:GOOS = "linux"
+# $Env:GOOS = "windows"
 $Env:GOARCH = "amd64"
 
 # Set GO Path
@@ -11,4 +12,4 @@ cd $cwd
 
 echo "Done"
 
-# go build .\main.go; mv -Force .\main Z:\mediaindexer
+go build .\main.go; mv -Force .\main Z:\mediaindexer

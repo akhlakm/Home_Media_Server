@@ -1,0 +1,282 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery</title>
+
+    <style>
+        .overlay {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            font-family: 'Courier New', Courier, monospace;
+            /* -webkit-text-stroke: 1px blue; */
+            z-index: 1;
+            text-align: right;
+            top: 85%;
+            right: 20px;
+            padding: 5px;
+            width: auto;
+            height: auto;
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        a {
+            color: rgba(120, 219, 223, 1.0);
+            text-decoration: none;
+            font-size: 16px;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+        }
+        
+        .overlay a {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        
+        .details {
+            color: rgba(255, 255, 255, 1.0);
+            font-size: 20px;
+            font-family: 'Times New Roman', Times, serif;
+            text-align: center;
+            height: auto;
+            margin-top: 10px;
+        }
+        
+        .media {
+            position: relative;
+            border: 1px solid yellow;
+            margin: 1000px auto;
+        }
+    </style>
+    <!-- Automatically create this file.
+    Should contain a list named "items" with relative paths from this file. -->
+    <script src="/media/i/list.js" type="text/javascript"></script>
+</head>
+
+<body style="text-align: center; background: black; color: orangered;">
+
+    <div id="info">Scroll to continue ...</div>
+    <div id="wrapper" style="height: 95%; width: 100%; overflow: auto;">
+        <div id="content"> </div>
+    </div>
+
+    <script language="JavaScript">
+        var i = -1;
+        var maxItems = 100;
+        var points = parseFloat(window.localStorage.getItem("points")) || 0;
+        var itemsOK = false;
+        var hashList = [];
+
+        var wrapper, content, info;
+
+        // size
+        const wwidth = window.innerWidth || document.documentElement.clientWidth ||
+            document.body.clientWidth;
+        const wheight = window.innerHeight || document.documentElement.clientHeight ||
+            document.body.clientHeight;
+        var imageWidth = 1000; // px
+        if (wwidth < 1000) imageWidth = Math.floor(wwidth * 0.9);
+
+        // url parameters to filter items
+        const urlSearchParams = new URLSearchParams(window.location.search);
+        const params = Object.fromEntries(urlSearchParams.entries());
+
+        function shuffleArray(array) {
+            for (var k = array.length - 1; k > 0; k--) {
+                var j = Math.floor(Math.random() * (k + 1));
+                var temp = array[k];
+                array[k] = array[j];
+                array[j] = temp;
+            }
+            return array;
+        }
+
+        function like(hash) {
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "/api/like/" + hash, true);
+            xhttp.send();
+        }
+
+        function dislike(hash) {
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "/api/dislike/" + hash, true);
+            xhttp.send();
+        }
+
+        function getNextItem() {
+            if (i >= hashList.length) return 0;
+            else return i + 1;
+        }
+
+        // cross browser addEvent, today you can safely use just addEventListener
+        function addEvent(obj, ev, fn) {
+            if (obj.addEventListener) obj.addEventListener(ev, fn, false);
+            else if (obj.attachEvent) obj.attachEvent("on" + ev, fn);
+        }
+
+        var imgLoading = false;
+
+        function more(i, hash, media) {
+            var url = media.Path;
+            var desc = media.Desc;
+            var source = media.URL;
+            var img = new Image();
+            img.onload = () => {
+                var wr = imageWidth / img.width;
+                var h = wr * img.height;
+                var cont = '<div class="media" style="height:' + h + 'px; width: ' + imageWidth + 'px; ">';
+                cont += "<div class='overlay'>"
+                cont += hash.toUpperCase() + "<br><a href='jsCanvas/?i=" + url + "#/caption'>" + url + "</a>"
+                if (source.length > 0) cont += "<br><a href='" + source + "' target='_blank'>@source</a>"
+                cont += '</div><img style="width:100%; height:100%;" src="' + img.src + '"/>';
+                cont += '<button onclick=\'javascript:like("' + hash + '");\'>Like</button>';
+                cont += '<button onclick=\'javascript:dislike("' + hash + '");\'>Dislike</button>';
+                if (desc) {
+                    cont += "<div class='details'>" + desc + "</div>";
+                }
+                cont += "</div>";
+                content.innerHTML += cont;
+                imgLoading = false;
+                info.innerHTML = points + " | " + content.childNodes.length;
+            };
+            setTimeout(() => {
+                imgLoading = false;
+            }, 5000);
+            img.src = url;
+            imgLoading = true;
+        }
+
+        function video(i, hash, media) {
+            var url = media.Path;
+            var desc = media.Desc;
+            var source = media.URL;
+            var cont = '<div class="media" style="height:100%; width: ' + imageWidth + 'px; ">';
+            cont += "<div class='overlay'>"
+            cont += hash.toUpperCase() + "<br>" + url
+            if (source.length > 0) cont += "<br><a href='" + source + "' target='_blank'>@source</a>"
+            cont += '</div><video id="video' + i + '" height="100%" width="100%" preload="auto" controls autoplay="autoplay" loop>';
+            cont += '<source src="' + url + '" type="video/mp4" />';
+            cont += '</video>';
+            cont += '<button onclick=\'javascript:like("' + hash + '");\'>Like</button>';
+            cont += '<button onclick=\'javascript:dislike("' + hash + '");\'>Dislike</button>';
+
+            if (desc) {
+                cont += "<div class='details'>" + desc + "</div>";
+            }
+            cont += "</div>";
+
+            content.innerHTML += cont;
+        }
+
+        function LoadContent() {
+            if (i === -1) content.innerHTML = "";
+            i = getNextItem();
+
+            // if a list of media was given,
+            // use that list
+            if (itemsOK) {
+                var hash = hashList[i];
+                var media = items[hash];
+                if (media.Path.endsWith(".mp4")) video(i, hash, media);
+                else more(i, hash, media);
+            } else {
+                // use naming convention from current directory
+                more(i, "image (" + i + ").jpg");
+                more(i, "image (" + i + ").png");
+                more(i, "image (" + i + ").jpeg");
+                more(i, "animation (" + i + ").gif");
+                more(i, "image (" + i + ").webp");
+                video(i, "video (" + i + ").mp4");
+            }
+
+            // save points
+            points += 1;
+            window.localStorage.setItem("points", points);
+
+            // inform
+            info.innerHTML = points + " | " + content.childNodes.length;
+        }
+
+        // this is the scroll event handler
+        function scroller(ev) {
+            // print relevant scroll info
+            // info.innerHTML = wrapper.scrollTop + "+" + wrapper.offsetHeight + "+100>" + content.offsetHeight;
+            if (imgLoading) info.innerHTML += ".";
+
+            // don't add too much contents
+            else if (content.childNodes.length > 5) {
+                // wrapper.scrollTo({ top: 0, behavior: 'smooth' });
+                // content.innerHTML = "";
+                content.removeChild(content.getElementsByTagName('div')[0]);
+            }
+
+            // add more contents if user scrolled down enough
+            if (!imgLoading && wrapper.scrollTop + wrapper.offsetHeight + 500 > content.offsetHeight) {
+                LoadContent();
+            }
+        }
+
+        wrapper = document.getElementById("wrapper");
+        content = document.getElementById("content");
+        info = document.getElementById("info");
+
+        content.innerHTML = "<div style='height:200%; color:white; padding:20px; font-size:18px;font-family:Arial; line-height:1.5'>" +
+            "Welcome to Shindook Media Server!<br>" +
+            "Add your media files to Shindook HDD using Samba.<br>" +
+            "Generate the <i>list.json</i> in the Samba directory using the <i>mediaindexer</i> go program.<br>" +
+            "You can manually add descriptions using a text editor and then regenerate the list.<br>" +
+            "Copy the identifier key shown on the media and search for it in the text editor.<br>" +
+            "<br>You can also filter items. Examples,<br>" +
+            "<a href='?v=1'>Filter ?v=1, videos only</a><br>" +
+            "<a href='?i=1'>Filter ?i=1, static images</a><br>" +
+            "<a href='?d=1'>Filter ?d=1, contains description</a><br>" +
+            "<a href='?type=gif'>Filter ?type=gif, gif animations only</a><br>" +
+            "<a href='?path=/media/i/captions'>Filter ?path=/media/i/captions, path</a><br>" +
+            "<a href='.'>Everything</a><br>" +
+            "</div>";
+
+        // set window title
+        ss = window.location.pathname.split("/");
+        if (ss.length > 3)
+            document.title = ss[ss.length - 3] + "/" + ss[ss.length - 2];
+
+        // check if the items list is defined.
+        // should be in the list.js file.
+        if (typeof items !== 'undefined') {
+            hashList = Object.keys(items);
+            // url query specified, filter items
+            if (Object.keys(params).length > 0) {
+
+                // specified path only, ?path=/media/i/photos
+                if (params.path != null) hashList = hashList.filter(hash => items[hash].Path.startsWith(params.path));
+
+                // videos only, ?v=1
+                if (params.v == true) hashList = hashList.filter(hash => items[hash].Path.endsWith(".mp4"));
+
+                // has description, ?d=1
+                if (params.d == true) hashList = hashList.filter(hash => items[hash].Desc.length > 0);
+
+                // still images only, ?i=1
+                if (params.i == true) hashList = hashList.filter(hash => !items[hash].Path.endsWith(".mp4") && !items[hash].Path.endsWith(".gif"));
+
+                // specified type only, ?type=mp4
+                if (params.type != null) hashList = hashList.filter(hash => items[hash].Path.endsWith(params.type));
+            }
+
+            maxItems = hashList.length;
+            itemsOK = true;
+            info.innerHTML = maxItems + " items loaded from list.js";
+
+            // randomize the items
+            hashList = shuffleArray(hashList);
+
+        } else alert("list.js load error. Regen using mediaindexer.");
+
+        addEvent(wrapper, "scroll", scroller);
+    </script>
+</body>
+
+</html>

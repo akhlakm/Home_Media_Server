@@ -2,7 +2,6 @@ package indexer
 
 import (
 	"encoding/json"
-	"flag"
 	"sync"
 	"fmt"
 	"io/fs"
@@ -19,12 +18,33 @@ type FileItem struct {
 	Desc   string  `json:"Desc"`
 	SizeMB float32 `json:"SizeMB"`
 	URL    string  `json:"URL"`
+	Likes  		int  	`json:"Likes"`
+	Dislikes  	int  	`json:"Disikes"`
 }
 
 var HASHLEN int = 16
 var list map[string]FileItem
 var jsonfile string
 var jsfile string
+
+func AddLike(hash string) {
+	if fItem, exists := list[hash]; exists {
+		fmt.Println("Like:", hash)
+		fItem.Likes++
+		list[hash] = fItem
+		SaveItems()
+	}
+}
+
+func AddDislike(hash string) {
+	if fItem, exists := list[hash]; exists {
+		fmt.Println("Dislike:", hash)
+		fItem.Dislikes++
+		list[hash] = fItem
+		SaveItems()
+	}
+}
+
 
 func convertMP4(root, www string) {
 	// convert the videos to mp4
@@ -98,9 +118,9 @@ func calcDestPath(s, hash, www string) string {
 	wwwmp4 := www + "mp4/"
 
 	// ignore items if we are inside the www directory
-	if strings.HasPrefix(s, wwwimg) || strings.HasPrefix(s, wwwgif) || strings.HasPrefix(s, wwwmp4) {
-		return ""
-	}
+	// if strings.HasPrefix(s, wwwimg) || strings.HasPrefix(s, wwwgif) || strings.HasPrefix(s, wwwmp4) {
+	// 	return ""
+	// }
 
 	// path to move to
 	parentdir := filepath.Base(filepath.Dir(s))
@@ -156,7 +176,7 @@ func addFiles(retChan chan int, root string, www string) {
 		if !d.IsDir() {
 			// if not supported, ignore
 			if !IsFileType(s, SupportedAnimations) && !IsFileType(s, SupportedImages) && !IsFileType(s, SupportedVideos) {
-				fmt.Println("\nIgnore:", s)
+				// log.Println("\nIgnore:", s)
 				return nil
 			}
 
@@ -228,29 +248,27 @@ func SaveItems() {
 		panic(err)
 	}
 
+	fmt.Println("Save:", jsonfile)
+
 	// save as javascript file
 	content := append([]byte("var items = "), jsonString...)
 	content = append(content, []byte(";\n")...)
 	if err := ioutil.WriteFile(jsfile, content, 0644); err != nil {
 		panic(err)
 	}
+
+	fmt.Println("Save:", jsfile)
 }
 
-func Run() {
+func Run(root, www string, walk bool) {
 	now := time.Now()
 	fmt.Println("\n\t   Shindook Media Indexer")
 	fmt.Println("\t", now.Format(time.UnixDate), "\n")
 
-	// Named args
-	root := flag.String("d", "/media/i/", "The inbox directory path to index")
-	walk := flag.Bool("walk", false, "Specify to walk the root directory")
-	flag.Parse()
-
-	www := "/media/i/"
 	jsfile = filepath.Join(www, "list.js")
 	jsonfile = filepath.Join(www, "list.json")
 
-	fmt.Println("INBOX DIR:\t", *root)
+	fmt.Println("INBOX DIR:\t", root)
 	fmt.Println("SAVE DIR:\t", www)
 	fmt.Println("JS FILE:\t", jsfile)
 	fmt.Println("JSON FILE:\t", jsonfile)
@@ -259,8 +277,9 @@ func Run() {
 	start := time.Now()
 
 	// check root exists
-	if !DirExists(*root) {
-		log.Fatal("Root directory does not exist.")
+	if !DirExists(root) {
+		log.Printf("Root directory does not exist.")
+		return
 	}
 
 	// file list
@@ -283,42 +302,42 @@ func Run() {
 		}
 	}
 
-	tot := 0
-	totChan := make(chan int)
-	var wg sync.WaitGroup
-
-	// walk the directory, populate the file list
-	if *walk {
+	if walk {
+		tot := 0
+		totChan := make(chan int)
+		var wg sync.WaitGroup
+	
+		// walk the directory, populate the file list
 		CheckFfmpeg()
 		fmt.Println("FFMPEG OK")
-
+	
 		wg.Add(1)
 		// spawn bg processor for ffmpeg
 		go func() {
 			defer wg.Done()
-			convertMP4(*root, www)
-			segmentVideo(*root, www)
+			convertMP4(root, www)
+			segmentVideo(root, www)
 			fmt.Println("FFMPeg processes finished!")
 		}()
-
+	
 		// start adding, wait until data on channel
-		go addFiles(totChan, *root, www)
+		go addFiles(totChan, root, www)
 		tot += <- totChan
-
+	
 		// wait for the ffmpeg process
 		fmt.Println("Waiting for the ffmpeg processes to finish ... ")
 		wg.Wait()
-
+	
 		// add the newly processed ffmpeg files
 		// wait until data on channel
-		go addFiles(totChan, *root, www)
-		tot += <- totChan		
+		go addFiles(totChan, root, www)
+		tot += <- totChan
+	
+		elapsed := time.Since(start)
+		fmt.Println("\n----------------------")
+		fmt.Println("TOTAL:\t", tot)
+		fmt.Println("SAVE:\t", jsfile)
+		fmt.Println("UPDATE:\t", jsonfile)
+		fmt.Println("ELAPSED:", elapsed)
 	}
-
-	elapsed := time.Since(start)
-	fmt.Println("\n----------------------")
-	fmt.Println("TOTAL:\t", tot)
-	fmt.Println("SAVE:\t", jsfile)
-	fmt.Println("UPDATE:\t", jsonfile)
-	fmt.Println("ELAPSED:", elapsed)
 }
