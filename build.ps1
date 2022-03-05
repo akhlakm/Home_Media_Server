@@ -12,4 +12,4 @@ cd $cwd
 
 echo "Done"
 
-go build .\main.go; mv -Force .\main Z:\mediaindexer
+go build .\main.go; mv -Force .\main Z:\mediaserver
