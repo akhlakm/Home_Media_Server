@@ -19,7 +19,7 @@ type FileItem struct {
 	SizeMB float32 `json:"SizeMB"`
 	URL    string  `json:"URL"`
 	Likes  		int  	`json:"Likes"`
-	Dislikes  	int  	`json:"Disikes"`
+	Dislikes  	int  	`json:"Dislikes"`
 }
 
 var HASHLEN int = 16
