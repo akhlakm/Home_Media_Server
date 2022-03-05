@@ -247,6 +247,7 @@
         // should be in the list.js file.
         if (typeof items !== 'undefined') {
             hashList = Object.keys(items);
+
             // url query specified, filter items
             if (Object.keys(params).length > 0) {
 
@@ -265,6 +266,9 @@
                 // specified type only, ?type=mp4
                 if (params.type != null) hashList = hashList.filter(hash => items[hash].Path.endsWith(params.type));
             }
+
+            // remove the disliked items
+            hashList = hashList.filter(hash => items[hash].Dislikes < 1)
 
             maxItems = hashList.length;
             itemsOK = true;
