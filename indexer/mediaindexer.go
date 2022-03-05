@@ -203,6 +203,7 @@ func addFiles(retChan chan int, root string, www string) {
 				if fileExists(destpath) {
 					fmt.Printf("=")
 				} else {
+					fmt.Printf("+")
 					MoveFile(s, destpath)
 				}
 			} else {
@@ -237,6 +238,7 @@ func addFiles(retChan chan int, root string, www string) {
 		return nil
 	})
 
+	fmt.Println(" OK")
 	SaveItems()
 	retChan <- tot
 }
