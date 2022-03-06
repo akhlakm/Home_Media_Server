@@ -1,8 +1,15 @@
-# Build for linux deployment
+# Run the following after git checkout
 
-$Env:GOOS = "linux"
-# $Env:GOOS = "windows"
+# Install the node packages for the frontend
+# npm install
+# Ignore the node_modules directory for Dropbox
+# Set-Content -Stream com.dropbox.ignored -Value 1 -Path node_modules
+
 $Env:GOARCH = "amd64"
+
+# Build for linux deployment
+# $Env:GOOS = "windows"
+$Env:GOOS = "linux"
 
 # Set GO Path
 $cwd = $pwd.Path
@@ -17,3 +24,5 @@ cp .\public\ .\www\jsCanvas -Force -Recurse
 echo "Copied public/ to www/"
 
 go build .\main.go; mv -Force .\main Z:\mediaserver
+
+# run with ./mediaserver -serve -walk

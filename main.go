@@ -24,9 +24,12 @@ func main() {
 	serve := flag.Bool("serve", false, "Specify to serve on HTTP")
 	flag.Parse()
 
+    // where the files will be moved after adding to database from the root inbox
 	www := "/media/i/"
+
     indexer.Init(*root, www)
 
+    // Catch Ctrl+C and sigterm events for graceful shutdown
     c := make(chan os.Signal)
     signal.Notify(c, os.Interrupt, syscall.SIGTERM)
     go func() {
@@ -40,7 +43,7 @@ func main() {
     }()
 
     
-    // embed the public directory contents ...
+    // embed the www directory contents ...
 	fsys, err := fs.Sub(embedFs, "www")
 	if err != nil {
         log.Fatalf("Failed to create embeded filesystem for the www/ directory.")
@@ -58,6 +61,8 @@ func main() {
 
     if *walk {
         go indexer.Run()
+    } else {
+        fmt.Println("Specify -walk to crawl the root inbox directory. Or request /api/walk/")
     }
 
     wg.Wait()

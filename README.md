@@ -27,5 +27,5 @@ To build, run the build.ps1 powershell script, preferably in VSCode.
 
 A new simpler JsCanvas is added to the frontend, which can be used to add caption to an
 image directly from the infinite scroller. Make sure your server configuration accepts
-file upload. (Increase nginx upload size limit client_max_body_size 100M;).
+file upload. (Increase nginx upload size limit as client_max_body_size 100M;).
 
