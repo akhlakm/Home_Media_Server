@@ -28,38 +28,74 @@
         App.UpdateSize(e.target.value);
         Canvas.Redraw($App.cvDynamic, $App.texts, true);
     }
-    function handleUpdate(e) {
-        App.UpdateFont(e.target.value);
+    function handleUpdateFitwidth(e) {
+        App.UpdateFitwidth(e.target.value);
+        Canvas.Redraw($App.cvDynamic, $App.texts, true);
+    }
+    function handleUpdateTextAlign(e) {
+        App.UpdateAlign(e.target.value);
         Canvas.Redraw($App.cvDynamic, $App.texts, true);
     }
 
     function handleSaveClick(e) {
-        e.target.value = "Saving...";
-        Canvas.Redraw($App.cvStatic, $App.texts, false);
-        Canvas.GetBlob($App.cvStatic, (blob) => {
-            var formData = new FormData();
-            formData.append("file", blob);
+        if ($App.hash == null) {
+            e.target.value = "No Hash!";
+            return;
+        } else {
+            e.target.value = "Saving...";
+            Canvas.Redraw($App.cvStatic, $App.texts, false);
+            Canvas.GetBlob($App.cvStatic, (blob) => {
+                var formData = new FormData();
+                formData.append("file", blob);
 
-            var request = new XMLHttpRequest();
-            request.onload = () => {
-                e.target.value = "Saved";
-            };
+                var request = new XMLHttpRequest();
+                request.onload = () => {
+                    e.target.value = "Saved";
+                };
 
-            request.open("POST", "/api/caption/" + $App.hash);
-            request.send(formData);
-        });
+                request.open("POST", "/api/caption/" + $App.hash);
+                request.send(formData);
+            });
+        }
     }
 </script>
 
+{#if $App.info == null}
+    Ctrl + Click on the image to add text.
+{:else}
+    {$App.info}
+{/if}
 <div class="input">
     <input
         id="value"
         type="text"
         value={$App.value}
-        on:change={handleValueChange}
+        on:keyup={handleValueChange}
     />
 </div>
 
+B:<input
+    type="checkbox"
+    on:click={(e) => {
+        App.SetBold(e.target.checked);
+        Canvas.Redraw($App.cvDynamic, $App.texts, true);
+    }}
+/>
+I:<input
+    type="checkbox"
+    on:click={(e) => {
+        App.SetItalic(e.target.checked);
+        Canvas.Redraw($App.cvDynamic, $App.texts, true);
+    }}
+/>
+S:<input
+    type="checkbox"
+    on:click={(e) => {
+        App.SetSmallCaps(e.target.checked);
+        Canvas.Redraw($App.cvDynamic, $App.texts, true);
+    }}
+/>
+<br />
 <select on:change={handleSelectText}>
     {#each $App.texts as text}
         <option value={text.id}>
@@ -74,6 +110,12 @@
             {fontitem}
         </option>
     {/each}
+</select>
+
+<select on:change={handleUpdateTextAlign}>
+    <option value="center"> Center </option>
+    <option value="left"> Left </option>
+    <option value="right"> Right </option>
 </select>
 
 <div class="colorbox">
@@ -95,8 +137,21 @@
         min="5"
         max="250"
         step="1"
+        value="30"
         title="Font size"
         on:change={handleUpdateSize}
+    />
+</div>
+
+<div class="slider">
+    <input
+        type="range"
+        min="-1"
+        max="100"
+        step="1"
+        value="-1"
+        title="Text fit width"
+        on:change={handleUpdateFitwidth}
     />
 </div>
 
@@ -107,6 +162,12 @@
     select {
         width: 90%;
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    #value {
+        text-align: center;
+        margin-bottom: 10px;
+        font-family: monospace;
     }
 
     .colorbox b {

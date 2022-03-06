@@ -6,47 +6,104 @@
 
     onMount(() => {
         Canvas.LoadImage($App.url, $App.cvStatic);
-        Canvas.SetSize($App.cvDynamic, Canvas.GetSize($App.cvStatic));
+        setTimeout(() => {
+            Canvas.SetSize($App.cvDynamic, Canvas.GetSize($App.cvStatic));
+        }, 300);
     });
 
     function handleCanvasClick(e) {
         e.stopPropagation();
         e.preventDefault();
+        var canvasarea = document.getElementById("canvas-area");
         if (e.ctrlKey) {
             //if ctrl key is pressed, add new text
-            var newtext = Canvas.GetNewText($App.texts, e.clientX, e.clientY);
+            var newtext = Canvas.GetNewText(
+                $App.texts,
+                canvasarea.scrollLeft + e.clientX,
+                canvasarea.scrollTop + e.clientY
+            );
             App.AddText(newtext);
-            Canvas.SetSize($App.cvDynamic, Canvas.GetSize($App.cvStatic));
             Canvas.Redraw($App.cvDynamic, $App.texts, true);
-            document.getElementById("value").focus();
+            var inp = document.getElementById("value");
+            inp.focus();
+            setTimeout(() => {
+                inp.setSelectionRange(0, inp.value.length);
+                inp.select();
+            }, 100);
         } else {
-            // if ctrl key is not pressed
+            // if ctrl key is not pressed, select the text
+            var coord = {
+                x: canvasarea.scrollLeft + e.clientX,
+                y: canvasarea.scrollTop + e.clientY,
+            };
+
+            // a text hit?
+            var hit = Canvas.GetTextHit($App.texts, coord);
+            if (hit > -1) {
+                App.SelectText(hit);
+            }
         }
     }
 
-    function handleKeyUp(e) {
-        let keyCode = e.keyCode;
-        let chrCode = keyCode - 48 * Math.floor(keyCode / 48);
-        let chr = String.fromCharCode(96 <= keyCode ? chrCode : keyCode);
-        console.log(chr, e);
+    let isDragging = false;
+    let startCoord = null;
+
+    // drag start
+    function handleMouseDown(e) {
+        var canvasarea = document.getElementById("canvas-area");
+        startCoord = {
+            x: canvasarea.scrollLeft + e.clientX,
+            y: canvasarea.scrollTop + e.clientY,
+        };
+        var hit = Canvas.GetTextHit($App.texts, startCoord);
+        if (hit > -1) {
+            isDragging = true;
+            App.SelectText(hit);
+        }
+    }
+
+    // drag end
+    function handleMouseUp(e) {
+        isDragging = false;
+    }
+
+    // normal move or drag move
+    function handleMouseMove(e) {
+        var canvasarea = document.getElementById("canvas-area");
+        var coord = {
+            x: canvasarea.scrollLeft + e.clientX,
+            y: canvasarea.scrollTop + e.clientY,
+        };
+        if (isDragging) {
+            var dx = coord.x - startCoord.x;
+            var dy = coord.y - startCoord.y;
+            App.UpdatePosition(dx, dy);
+            Canvas.Redraw($App.cvDynamic, $App.texts, true);
+            startCoord = coord;
+            App.SetInfo(dx + " " + dy);
+        } else {
+            // a text hit, show info or cursor position
+            var hit = Canvas.GetTextHit($App.texts, coord);
+            if (hit > -1) {
+                App.SetInfo("Text " + hit);
+            } else {
+                App.SetInfo(coord.x + " " + coord.y);
+            }
+        }
     }
 </script>
 
 <div class="container">
     <div id="canvas-area">
-        <canvas
-            class="canvas"
-            id={$App.cvStatic}
-            style="z-Index: 0;"
-            on:click={handleCanvasClick}
-            on:keyup={handleKeyUp}
-        />
+        <canvas class="canvas" id={$App.cvStatic} style="z-Index: 0;" />
         <canvas
             class="canvas"
             id={$App.cvDynamic}
             style="z-Index: 1;"
             on:click={handleCanvasClick}
-            on:keyup={handleKeyUp}
+            on:mousemove={handleMouseMove}
+            on:mousedown={handleMouseDown}
+            on:mouseup={handleMouseUp}
         />
     </div>
     <div id="sidebar-area">

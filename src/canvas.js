@@ -10,7 +10,7 @@ export const Canvas = (function() {
             if (stroke) context.strokeText(text, x, y);
             else context.fillText(text, x, y);
             let size = context.measureText(text);
-            return [size.width, size.height];
+            return [size.width, lineHeight];
         }
         // to fit the max width, we will write word by word
         var words = text.split(" ");
@@ -76,14 +76,13 @@ export const Canvas = (function() {
     }
 
     function textHit(coord, text) {
-        // 50 pt is the perfect size
-        const buffer = 50 - text.size;
+        var buffer = text.height / 2;
 
         return (
-            coord.x - coord.div.x >= text.x - buffer &&
-            coord.x - coord.div.x <= text.x + text.width + buffer &&
-            coord.y - coord.div.y >= text.y - buffer &&
-            coord.y - coord.div.y <= text.y + text.height + buffer
+            (coord.x > text.x - buffer) &&
+            (coord.x < text.x + text.width + buffer) &&
+            (coord.y < text.y + buffer) &&
+            (coord.y > text.y - text.height)
         );
     }
 
@@ -115,6 +114,8 @@ export const Canvas = (function() {
                 font: "sans",
                 width: 0,
                 height: 0,
+                fitwidth: -1,
+                align: "center",
                 alpha: 255,
                 bold: false,
                 smallcaps: false,
@@ -175,10 +176,11 @@ export const Canvas = (function() {
 
         // redraw a canvas with the text lines
         Redraw: function(canvasid, textList, clear = true) {
-            // console.log(textList);
+            console.log(textList);
             var canvas = document.getElementById(canvasid);
             var ctx = canvas.getContext("2d");
             if (clear) ctx.clearRect(0, 0, canvas.width, canvas.height);
+
             for (var i = 0; i < textList.length; i++) {
                 var text = textList[i];
                 if (text.value.length === 0) continue;
@@ -186,8 +188,10 @@ export const Canvas = (function() {
                 if (text.bold) fontstyle = "bold " + fontstyle;
                 if (text.smallcaps) fontstyle = "small-caps " + fontstyle;
                 if (text.italic) fontstyle = "italic " + fontstyle;
-                // console.log("fontstyle:", fontstyle)
+                console.log("fontstyle:", fontstyle)
                 ctx.font = fontstyle;
+                ctx.textAlign = text.align;
+
                 if (text.thickness > 0) {
                     ctx.strokeStyle = text.shadow;
                     ctx.lineWidth = text.thickness;
@@ -207,6 +211,7 @@ export const Canvas = (function() {
                         true
                     );
                 ctx.shadowBlur = 0;
+
                 var rgb = hex2rgb(text.color);
                 var alpha = text.alpha / 255;
                 ctx.fillStyle = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;

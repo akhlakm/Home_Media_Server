@@ -50,6 +50,7 @@ const AppModel = function() {
         value: null,
         cvStatic: "static-canvas",
         cvDynamic: "dynamic-canvas",
+        info: null,
         webcolors: [
             "#000000", "#00CED1", "#0000FF", "#00FFFF",
             "#5C4033", "#7A5299", "#7C7C40", "#00008B",
@@ -84,9 +85,30 @@ const AppModel = function() {
             d.value = t;
             return d;
         }),
+        UpdatePosition: (dx, dy) => update(d => {
+            if (d.selected === null) return d;
+            d.texts[d.selected].x += dx;
+            d.texts[d.selected].y += dy;
+            return d;
+        }),
         UpdateFont: f => update(d => {
             if (d.selected === null) return d;
             d.texts[d.selected].font = f;
+            return d;
+        }),
+        SetBold: b => update(d => {
+            if (d.selected === null) return d;
+            d.texts[d.selected].bold = b;
+            return d;
+        }),
+        SetItalic: b => update(d => {
+            if (d.selected === null) return d;
+            d.texts[d.selected].italic = b;
+            return d;
+        }),
+        SetSmallCaps: b => update(d => {
+            if (d.selected === null) return d;
+            d.texts[d.selected].smallcaps = b;
             return d;
         }),
         UpdateSize: f => update(d => {
@@ -104,9 +126,19 @@ const AppModel = function() {
             d.texts[d.selected].blur = f;
             return d;
         }),
+        UpdateAlign: f => update(d => {
+            if (d.selected === null) return d;
+            d.texts[d.selected].align = f;
+            return d;
+        }),
         UpdateShadow: f => update(d => {
             if (d.selected === null) return d;
             d.texts[d.selected].shadow = f;
+            return d;
+        }),
+        UpdateFitwidth: f => update(d => {
+            if (d.selected === null) return d;
+            d.texts[d.selected].fitwidth = f;
             return d;
         }),
         SelectColor: c => update(d => {
@@ -118,6 +150,13 @@ const AppModel = function() {
             d.texts = [...d.texts, t];
             d.selected = d.texts.length - 1;
             d.value = t.value;
+            return d;
+        }),
+        SetInfo: m => update(d => {
+            d.info = m;
+            setTimeout(() => {
+                model.SetInfo(null);
+            }, 3000);
             return d;
         }),
     }
