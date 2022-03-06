@@ -102,7 +102,8 @@ func MoveFile(src, dst string) error {
 		return fmt.Errorf("couldn't open source file: %s", err)
 	}
 
-	out, err := os.Create(dst)
+	// out, err := os.Create(dst)
+	out, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		in.Close()
 		return fmt.Errorf("couldn't open dest file: %s", err)
@@ -120,14 +121,14 @@ func MoveFile(src, dst string) error {
 		return fmt.Errorf("sync error: %s", err)
 	}
 
-	si, err := os.Stat(src)
-	if err != nil {
-		return fmt.Errorf("stat error: %s", err)
-	}
-	err = os.Chmod(dst, si.Mode())
-	if err != nil {
-		return fmt.Errorf("chmod error: %s", err)
-	}
+	// si, err := os.Stat(src)
+	// if err != nil {
+	// 	return fmt.Errorf("stat error: %s", err)
+	// }
+	// err = os.Chmod(dst, si.Mode())
+	// if err != nil {
+	// 	return fmt.Errorf("chmod error: %s", err)
+	// }
 
 	err = os.Remove(src)
 	if err != nil {

@@ -49,6 +49,17 @@ func AddDislike(hash string) {
 	}
 }
 
+func AddCaptionFile(src, hash string) {
+	if fItem, exists := list[hash]; exists {
+		fmt.Println("New caption:", hash)
+		MoveFile(src, fItem.Path)
+		fItem.Dislikes = 0;
+		fItem.Desc = fItem.Desc + " caption";
+		SaveItems()
+		// remove the uploaded file
+		os.Remove(src)
+	}
+}
 
 func convertMP4(root, www string) {
 	// convert the videos to mp4

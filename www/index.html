@@ -131,7 +131,7 @@
                 var h = wr * img.height;
                 var cont = '<div class="media" style="height:' + h + 'px; width: ' + imageWidth + 'px; ">';
                 cont += "<div class='overlay'>"
-                cont += hash.toUpperCase() + "<br><a href='jsCanvas/?i=" + url + "#/caption'>" + url + "</a>"
+                cont += hash.toUpperCase() + "<br><a href='jsCanvas/?i=" + url + "&hash=" + hash + "'>" + url + "</a>"
                 if (source.length > 0) cont += "<br><a href='" + source + "' target='_blank'>@source</a>"
                 cont += '</div><img style="width:100%; height:100%;" src="' + img.src + '"/>';
                 cont += '<button onclick=\'javascript:like("' + hash + '");\'>Like</button>';

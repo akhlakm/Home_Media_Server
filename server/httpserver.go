@@ -5,14 +5,11 @@ import (
 	"io"
 	"io/fs"
 	"log"
-	"bytes"
 	"os"
 	"net/http"
 	"sync"
 	"strings"
 	"mediaindexer/indexer"
-	"encoding/base64"
-	"image/png"
 )
 
 var httpServer *http.Server = nil
@@ -37,52 +34,30 @@ func handleApiReq(cmd string, urlParts []string) string {
 }
 // This function returns the filename(to save in database) of the saved file
 // or an error if it occurs
-func fileUpload(r *http.Request) (string, error) {
+func fileUpload(r *http.Request, hash string) string {
     // ParseMultipartForm parses a request body as multipart/form-data
     r.ParseMultipartForm(32 << 20)
 
-    file, handler, err := r.FormFile("file") // Retrieve the file from form data
-
-    if err != nil {
-        return "", err
+    file, _, err := r.FormFile("file") // Retrieve the file from form data
+	if err != nil {
+        return "500"
     }
     defer file.Close()                       // Close the file when we finish
 
     // This is path which we want to store the file
-    f, err := os.OpenFile(handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
-
+    f, err := os.OpenFile("_uploaded.png", os.O_WRONLY|os.O_CREATE, 0666)
     if err != nil {
-        return "", err
+        return "500"
     }
+	defer f.Close()
 
-    // Copy the file to the destination path
+	// Copy the file to the destination path
     io.Copy(f, file)
 
-    return handler.Filename, nil
-}
+	// move to place in background
+	go indexer.AddCaptionFile("_uploaded.png", hash)
 
-func uploadB64(req *http.Request) string {
-	imgString := req.FormValue("image")
-	fmt.Printf("Upload: %s, %d, %T\n", imgString, len(imgString), imgString)
-
-	unbased, err := base64.StdEncoding.DecodeString(imgString)
-	if err != nil {
-		panic("Cannot decode b64")
-	}
-	
-	r := bytes.NewReader(unbased)
-	im, err := png.Decode(r)
-	if err != nil {
-		panic("Bad png")
-	}
-	
-	f, err := os.OpenFile("uploaded.png", os.O_WRONLY|os.O_CREATE, 0777)
-	if err != nil {
-		panic("Cannot open file")
-	}
-	
-	png.Encode(f, im)
-	return "200"
+    return "200"
 }
 
 func serveAPI(w http.ResponseWriter, r *http.Request) {
@@ -90,18 +65,23 @@ func serveAPI(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
 
-	fmt.Println("Req:", r.URL.Path)
+	fmt.Println(r.Method, r.URL.Path)
 
-	if r.Method == "GET" {
-		// get the parts host/api/like/<hash>
-		ss := strings.Split(r.URL.Path, "/")
+	// get the parts host/api/like/<hash>
+	ss := strings.Split(r.URL.Path, "/")
+
+	if r.Method == "GET" {		
 		w.Write([]byte(handleApiReq(ss[2], ss)))
-	} else if r.Method == "POST" {
-		w.Write([]byte(uploadB64(r)))
-	} else {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
+	} else if r.Method == "POST" {
+		if len(ss) > 3 {
+			w.Write([]byte(fileUpload(r, ss[3])))
+			return
+		}
 	}
+
+	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	return
 }
 
 func RunServer(wg *sync.WaitGroup, embedFs fs.FS, port int) {
