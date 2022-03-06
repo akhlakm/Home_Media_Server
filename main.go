@@ -25,14 +25,13 @@ func main() {
 	flag.Parse()
 
 	www := "/media/i/"
+    indexer.Init(*root, www)
 
     c := make(chan os.Signal)
     signal.Notify(c, os.Interrupt, syscall.SIGTERM)
     go func() {
         <-c
-        if *walk {
-            indexer.SaveItems()
-        }
+        indexer.SaveItems()
         if *serve {
             server.Shutdown()
         }
@@ -53,8 +52,13 @@ func main() {
     if *serve {
         wg.Add(1)
         go server.RunServer(&wg, fsys, 9000)
+    } else {
+        fmt.Println("Specify -serve to start the media server at :9000")
     }
 
-    indexer.Run(*root, www, *walk)
+    if *walk {
+        go indexer.Run()
+    }
+
     wg.Wait()
 }

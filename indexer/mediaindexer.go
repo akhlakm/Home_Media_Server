@@ -24,8 +24,12 @@ type FileItem struct {
 
 var HASHLEN int = 16
 var list map[string]FileItem
+var mediaRoot string
+var mediaWWW string
 var jsonfile string
 var jsfile string
+var isWalking bool = false
+var start time.Time
 
 func AddLike(hash string) {
 	if fItem, exists := list[hash]; exists {
@@ -224,6 +228,8 @@ func addFiles(retChan chan int, root string, www string) {
 				Desc:   "",
 				SizeMB: size,
 				URL:    "",
+				Likes: 0,
+				Dislikes: 0,
 			}
 			num += 1
 		} else {
@@ -262,24 +268,31 @@ func SaveItems() {
 	fmt.Println("Save:", jsfile)
 }
 
-func Run(root, www string, walk bool) {
+func Init(root, www string) {
 	now := time.Now()
 	fmt.Println("\n\t   Shindook Media Indexer")
 	fmt.Println("\t", now.Format(time.UnixDate), "\n")
 
-	jsfile = filepath.Join(www, "list.js")
-	jsonfile = filepath.Join(www, "list.json")
+	CheckFfmpeg()
+	fmt.Println("FFMPEG OK")
 
-	fmt.Println("INBOX DIR:\t", root)
-	fmt.Println("SAVE DIR:\t", www)
+	mediaRoot = root
+	mediaWWW = www
+	isWalking = false
+
+	jsfile = filepath.Join(mediaWWW, "list.js")
+	jsonfile = filepath.Join(mediaWWW, "list.json")
+
+	fmt.Println("INBOX DIR:\t", mediaRoot)
+	fmt.Println("SAVE DIR:\t", mediaWWW)
 	fmt.Println("JS FILE:\t", jsfile)
 	fmt.Println("JSON FILE:\t", jsonfile)
 
 	fmt.Println("----------------------\n")
-	start := time.Now()
+	start = time.Now()
 
 	// check root exists
-	if !DirExists(root) {
+	if !DirExists(mediaRoot) {
 		log.Printf("Root directory does not exist.")
 		return
 	}
@@ -303,43 +316,47 @@ func Run(root, www string, walk bool) {
 			}
 		}
 	}
+}
 
-	if walk {
-		tot := 0
-		totChan := make(chan int)
-		var wg sync.WaitGroup
-	
-		// walk the directory, populate the file list
-		CheckFfmpeg()
-		fmt.Println("FFMPEG OK")
-	
-		wg.Add(1)
-		// spawn bg processor for ffmpeg
-		go func() {
-			defer wg.Done()
-			convertMP4(root, www)
-			segmentVideo(root, www)
-			fmt.Println("FFMPeg processes finished!")
-		}()
-	
-		// start adding, wait until data on channel
-		go addFiles(totChan, root, www)
-		tot += <- totChan
-	
-		// wait for the ffmpeg process
-		fmt.Println("Waiting for the ffmpeg processes to finish ... ")
-		wg.Wait()
-	
-		// add the newly processed ffmpeg files
-		// wait until data on channel
-		go addFiles(totChan, root, www)
-		tot += <- totChan
-	
-		elapsed := time.Since(start)
-		fmt.Println("\n----------------------")
-		fmt.Println("TOTAL:\t", tot)
-		fmt.Println("SAVE:\t", jsfile)
-		fmt.Println("UPDATE:\t", jsonfile)
-		fmt.Println("ELAPSED:", elapsed)
+func Run() {
+	if isWalking {
+		return
 	}
+
+	isWalking = true
+	tot := 0
+	totChan := make(chan int)
+	var wg sync.WaitGroup
+
+	
+	wg.Add(1)
+	// spawn bg processor for ffmpeg
+	go func() {
+		defer wg.Done()
+		convertMP4(mediaRoot, mediaWWW)
+		segmentVideo(mediaRoot, mediaWWW)
+		fmt.Println("FFMPeg processes finished!")
+	}()
+		
+	// walk the directory, populate the file list
+	// wait until data on channel
+	go addFiles(totChan, mediaRoot, mediaWWW)
+	tot += <- totChan
+
+	// wait for the ffmpeg process
+	fmt.Println("Waiting for the ffmpeg processes to finish ... ")
+	wg.Wait()
+
+	// add the newly processed ffmpeg files
+	// wait until data on channel
+	go addFiles(totChan, mediaRoot, mediaWWW)
+	tot += <- totChan
+
+	elapsed := time.Since(start)
+	fmt.Println("\n----------------------")
+	fmt.Println("TOTAL:\t", tot)
+	fmt.Println("SAVE:\t", jsfile)
+	fmt.Println("UPDATE:\t", jsonfile)
+	fmt.Println("ELAPSED:", elapsed)
+	isWalking = false
 }

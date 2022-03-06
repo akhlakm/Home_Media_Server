@@ -96,12 +96,14 @@
 
         function like(hash) {
             var xhttp = new XMLHttpRequest();
+            items[hash].Likes++;
             xhttp.open("GET", "/api/like/" + hash, true);
             xhttp.send();
         }
 
         function dislike(hash) {
             var xhttp = new XMLHttpRequest();
+            items[hash].Dislikes++;
             xhttp.open("GET", "/api/dislike/" + hash, true);
             xhttp.send();
         }
@@ -180,6 +182,11 @@
             if (itemsOK) {
                 var hash = hashList[i];
                 var media = items[hash];
+
+                // skip the disliked items
+                if (media.Dislikes > 0) return LoadContent();
+
+                // load
                 if (media.Path.endsWith(".mp4")) video(i, hash, media);
                 else more(i, hash, media);
             } else {
@@ -207,14 +214,14 @@
             if (imgLoading) info.innerHTML += ".";
 
             // don't add too much contents
-            else if (content.childNodes.length > 5) {
+            else if (content.childNodes.length > 10) {
                 // wrapper.scrollTo({ top: 0, behavior: 'smooth' });
                 // content.innerHTML = "";
                 content.removeChild(content.getElementsByTagName('div')[0]);
             }
 
             // add more contents if user scrolled down enough
-            if (!imgLoading && wrapper.scrollTop + wrapper.offsetHeight + 500 > content.offsetHeight) {
+            if (!imgLoading && wrapper.scrollTop + wrapper.offsetHeight + 900 > content.offsetHeight) {
                 LoadContent();
             }
         }
@@ -266,9 +273,6 @@
                 // specified type only, ?type=mp4
                 if (params.type != null) hashList = hashList.filter(hash => items[hash].Path.endsWith(params.type));
             }
-
-            // remove the disliked items
-            hashList = hashList.filter(hash => items[hash].Dislikes < 1)
 
             maxItems = hashList.length;
             itemsOK = true;
