@@ -10,27 +10,29 @@
         });
     });
 
-    function handleCanvasClick(e) {
-        e.stopPropagation();
-        e.preventDefault();
+    function handleAddText(e) {
         var canvasarea = document.getElementById("canvas-area");
+        var newtext = Canvas.GetNewText(
+            $App.texts,
+            canvasarea.scrollLeft + e.clientX,
+            canvasarea.scrollTop + e.clientY
+        );
+        App.AddText(newtext);
+        Canvas.Redraw($App.cvDynamic, $App.texts, true);
+        var inp = document.getElementById("value");
+        inp.focus();
+        setTimeout(() => {
+            inp.setSelectionRange(0, inp.value.length);
+            inp.select();
+        }, 100);
+    }
+
+    function handleCanvasClick(e) {
         if (e.ctrlKey) {
-            //if ctrl key is pressed, add new text
-            var newtext = Canvas.GetNewText(
-                $App.texts,
-                canvasarea.scrollLeft + e.clientX,
-                canvasarea.scrollTop + e.clientY
-            );
-            App.AddText(newtext);
-            Canvas.Redraw($App.cvDynamic, $App.texts, true);
-            var inp = document.getElementById("value");
-            inp.focus();
-            setTimeout(() => {
-                inp.setSelectionRange(0, inp.value.length);
-                inp.select();
-            }, 100);
+            handleAddText(e);
         } else {
             // if ctrl key is not pressed, select the text
+            var canvasarea = document.getElementById("canvas-area");
             var coord = {
                 x: canvasarea.scrollLeft + e.clientX,
                 y: canvasarea.scrollTop + e.clientY,
@@ -100,6 +102,7 @@
             id={$App.cvDynamic}
             style="z-Index: 1;"
             on:click={handleCanvasClick}
+            on:dblclick={handleAddText}
             on:mousemove={handleMouseMove}
             on:mousedown={handleMouseDown}
             on:mouseup={handleMouseUp}
