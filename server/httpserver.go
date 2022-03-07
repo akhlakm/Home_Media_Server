@@ -10,13 +10,31 @@ import (
 	"sync"
 	"strings"
 	"mediaindexer/indexer"
+	"time"
 )
 
 var httpServer *http.Server = nil
+// wait 1 min after user leaves, 10 secs grace period
+const timerWait = 70 * time.Second;
+var hbTimer *time.Timer = nil
 
 func handleApiReq(cmd string, urlParts []string) string {
 	if cmd == "walk" {
 		go indexer.Run()
+		return "200"
+	} else if cmd == "heartbeat" {
+		if hbTimer == nil {
+			hbTimer = time.NewTimer(timerWait)
+			go func() {
+				<-hbTimer.C
+				hbTimer.Stop()
+				hbTimer = nil
+				// things to do after 1 min of user absence
+				indexer.SaveItems()
+			}()
+		} else {
+			hbTimer.Reset(timerWait);
+		}
 		return "200"
 	} else if cmd == "like" && len(urlParts) > 3 {
 		// host/api/like/<hash>
@@ -32,8 +50,7 @@ func handleApiReq(cmd string, urlParts []string) string {
 
 	return "404"
 }
-// This function returns the filename(to save in database) of the saved file
-// or an error if it occurs
+
 func fileUpload(r *http.Request, hash string) string {
     // ParseMultipartForm parses a request body as multipart/form-data
     r.ParseMultipartForm(32 << 20)

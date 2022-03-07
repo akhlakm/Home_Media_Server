@@ -36,7 +36,6 @@ func AddLike(hash string) {
 		fmt.Println("Like:", hash)
 		fItem.Likes++
 		list[hash] = fItem
-		SaveItems()
 	}
 }
 
@@ -45,7 +44,6 @@ func AddDislike(hash string) {
 		fmt.Println("Dislike:", hash)
 		fItem.Dislikes++
 		list[hash] = fItem
-		SaveItems()
 	}
 }
 
@@ -55,7 +53,6 @@ func AddCaptionFile(src, hash string) {
 		MoveFile(src, fItem.Path)
 		fItem.Dislikes = 0;
 		fItem.Desc = fItem.Desc + " caption";
-		SaveItems()
 		// remove the uploaded file
 		os.Remove(src)
 	}
