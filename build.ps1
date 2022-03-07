@@ -20,6 +20,7 @@ echo "GOPATH set"
 
 # build the front end
 npm run build
+Remove-Item .\www\jsCanvas\ -Recurse -Force -Confirm:$false
 cp .\public\ .\www\jsCanvas -Force -Recurse
 echo "Copied public/ to www/"
 

@@ -144,7 +144,9 @@ export const Canvas = (function() {
                 ctx = canvas.getContext("2d");
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             var img = new Image();
-            img.src = imagePath;
+            // force reload
+            var r = Math.random().toString(36).substring(2, 5);
+            img.src = imagePath + "?" + r;
             img.crossOrigin = "anonymous";
             img.onload = function() {
                 console.log("Image:", this.width, "x", this.height, "px");
