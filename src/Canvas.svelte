@@ -5,10 +5,9 @@
     import Sidebar from "./Sidebar.svelte";
 
     onMount(() => {
-        Canvas.LoadImage($App.url, $App.cvStatic);
-        setTimeout(() => {
+        Canvas.LoadImage($App.url, $App.cvStatic, (img) => {
             Canvas.SetSize($App.cvDynamic, Canvas.GetSize($App.cvStatic));
-        }, 300);
+        });
     });
 
     function handleCanvasClick(e) {

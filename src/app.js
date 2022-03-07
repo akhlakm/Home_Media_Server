@@ -42,6 +42,7 @@ const webfonts = () => {
 };
 
 const AppModel = function() {
+    let infoTimer = null;
     let data = {
         hash: null,
         url: null,
@@ -154,9 +155,13 @@ const AppModel = function() {
         }),
         SetInfo: m => update(d => {
             d.info = m;
-            setTimeout(() => {
-                model.SetInfo(null);
-            }, 3000);
+            if (infoTimer == null) {
+                infoTimer = setTimeout(() => {
+                    model.SetInfo(null);
+                    clearTimeout(infoTimer);
+                    infoTimer = null;
+                }, 3000);
+            }
             return d;
         }),
     }

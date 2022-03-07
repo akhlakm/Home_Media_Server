@@ -77,13 +77,31 @@ export const Canvas = (function() {
 
     function textHit(coord, text) {
         var buffer = text.height / 2;
-
-        return (
-            (coord.x > text.x - buffer) &&
-            (coord.x < text.x + text.width + buffer) &&
-            (coord.y < text.y + buffer) &&
-            (coord.y > text.y - text.height)
-        );
+        if (text.align === "left") {
+            return (
+                // l, r, t, b
+                (coord.x > text.x - buffer) &&
+                (coord.x < text.x + text.width + buffer) &&
+                (coord.y > text.y - text.height) &&
+                (coord.y < text.y + buffer)
+            );
+        } else if (text.align === "right") {
+            return (
+                // l, r, t, b
+                (coord.x > text.x - text.width - buffer) &&
+                (coord.x < text.x + buffer) &&
+                (coord.y > text.y - text.height) &&
+                (coord.y < text.y + buffer)
+            );
+        } else {
+            return (
+                // l, r, t, b
+                (coord.x > text.x - text.width / 2 - buffer) &&
+                (coord.x < text.x + text.width / 2 + buffer) &&
+                (coord.y > text.y - text.height) &&
+                (coord.y < text.y + buffer)
+            );
+        }
     }
 
     return { // public interface
@@ -138,7 +156,7 @@ export const Canvas = (function() {
         },
 
         // Load the image
-        LoadImage: function(imagePath, canvasid) {
+        LoadImage: function(imagePath, canvasid, cb = null) {
             if (imagePath == null) return;
             var canvas = document.getElementById(canvasid),
                 ctx = canvas.getContext("2d");
@@ -157,6 +175,8 @@ export const Canvas = (function() {
                 // add opacity
                 ctx.fillStyle = "rgba(0,0,0,0.1)";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                if (cb !== null) cb(img);
             };
         },
 

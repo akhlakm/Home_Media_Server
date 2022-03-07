@@ -151,18 +151,6 @@
             imgLoading = true;
         }
 
-        function ElementVisible(el) {
-            var rect = el.getBoundingClientRect();
-            var elemTop = rect.top;
-            var elemBottom = rect.bottom;
-
-            // Only completely visible elements return true:
-            var isVisible = (elemTop >= 0) && (elemBottom <= window.innerHeight);
-            // Partially visible elements return true:
-            isVisible = elemTop < window.innerHeight && elemBottom >= 0;
-            return isVisible;
-        }
-
         function video(i, hash, media) {
             var url = media.Path;
             var desc = media.Desc;
@@ -219,6 +207,18 @@
             info.innerHTML = points + " | " + content.childNodes.length;
         }
 
+        function ElementVisible(el) {
+            var rect = el.getBoundingClientRect();
+            var elemTop = rect.top;
+            var elemBottom = rect.bottom;
+
+            // Only completely visible elements return true:
+            var isVisible = (elemTop >= 0) && (elemBottom <= window.innerHeight);
+            // Partially visible elements return true:
+            isVisible = elemTop < window.innerHeight && elemBottom >= 0;
+            return isVisible;
+        }
+
         // this is the scroll event handler
         function scroller(ev) {
             // print relevant scroll info
@@ -226,14 +226,14 @@
             if (imgLoading) info.innerHTML += ".";
 
             // don't add too much contents
-            else if (content.childNodes.length > 10) {
+            else if (content.childNodes.length > 7) {
                 // wrapper.scrollTo({ top: 0, behavior: 'smooth' });
                 // content.innerHTML = "";
                 content.removeChild(content.getElementsByTagName('div')[0]);
             }
 
             // add more contents if user scrolled down enough
-            if (!imgLoading && wrapper.scrollTop + wrapper.offsetHeight + 900 > content.offsetHeight) {
+            if (!imgLoading && wrapper.scrollTop + wrapper.offsetHeight + 1200 > content.offsetHeight) {
                 LoadContent();
             }
 
