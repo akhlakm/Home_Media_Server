@@ -171,11 +171,11 @@
             cont += "<div class='overlay'>"
             cont += hash.toUpperCase() + "<br>" + url
             if (source.length > 0) cont += "<br><a href='" + source + "' target='_blank'>@source</a>"
-            cont += '</div><video id="video' + i + '" height="100%" width="100%" preload="auto" controls autoplay="autoplay" loop>';
+            cont += '</div><video id="video' + i + '" height="100%" width="100%" preload="auto" controls autoplay="false" loop>';
             cont += '<source src="' + url + '" type="video/mp4" />';
             cont += '</video>';
-            cont += '<button onclick=\'javascript:like("' + hash + '");\'>Like</button>';
-            cont += '<button onclick=\'javascript:dislike("' + hash + '");\'>Dislike</button>';
+            cont += media.Likes + ' <button onclick=\'javascript:like("' + hash + '");\'>Like</button>';
+            cont += '<button onclick=\'javascript:dislike("' + hash + '");\'>Dislike</button> ' + media.Dislikes;
 
             if (desc) {
                 cont += "<div class='details'>" + desc + "</div>";
@@ -235,6 +235,16 @@
             // add more contents if user scrolled down enough
             if (!imgLoading && wrapper.scrollTop + wrapper.offsetHeight + 900 > content.offsetHeight) {
                 LoadContent();
+            }
+
+            var videos = document.getElementsByTagName("video");
+            for (var i = 0; i < videos.length; i++) {
+                var video = videos[i].parentElement;
+                if (ElementVisible(video)) {
+                    videos[i].play();
+                } else {
+                    videos[i].pause();
+                }
             }
         }
 
@@ -296,37 +306,6 @@
         } else alert("list.js load error. Regen using mediaindexer.");
 
         addEvent(wrapper, "scroll", scroller);
-
-        function checkScroll() {
-            var fraction = 0.8; // Play when 80% of the player is visible.
-
-            for (var i = 0; i < videos.length; i++) {
-
-                var video = videos[i];
-
-                var x = video.offsetLeft,
-                    y = video.offsetTop,
-                    w = video.offsetWidth,
-                    h = video.offsetHeight,
-                    r = x + w, //right
-                    b = y + h, //bottom
-                    visibleX, visibleY, visible;
-
-                visibleX = Math.max(0, Math.min(w, window.pageXOffset + window.innerWidth - x, r - window.pageXOffset));
-                visibleY = Math.max(0, Math.min(h, window.pageYOffset + window.innerHeight - y, b - window.pageYOffset));
-
-                visible = visibleX * visibleY / (w * h);
-
-                if (visible > fraction) {
-                    video.play();
-                } else {
-                    video.pause();
-                }
-            }
-        }
-
-        window.addEventListener('scroll', checkScroll, false);
-        window.addEventListener('resize', checkScroll, false);
     </script>
 </body>
 

@@ -18,12 +18,12 @@ func handleApiReq(cmd string, urlParts []string) string {
 	if cmd == "walk" {
 		go indexer.Run()
 		return "200"
-	} else if cmd == "like" && len(urlParts) > 4 {
+	} else if cmd == "like" && len(urlParts) > 3 {
 		// host/api/like/<hash>
 		hash := urlParts[3]
 		indexer.AddLike(hash)
 		return "200"
-	} else if cmd == "dislike" && len(urlParts) > 4 {
+	} else if cmd == "dislike" && len(urlParts) > 3 {
 		// host/api/dislike/<hash>
 		hash := urlParts[3]
 		indexer.AddDislike(hash)
