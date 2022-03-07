@@ -72,14 +72,6 @@
 
         var wrapper, content, info;
 
-        // size
-        const wwidth = window.innerWidth || document.documentElement.clientWidth ||
-            document.body.clientWidth;
-        const wheight = window.innerHeight || document.documentElement.clientHeight ||
-            document.body.clientHeight;
-        var imageWidth = 1000; // px
-        if (wwidth < 1000) imageWidth = Math.floor(wwidth * 0.9);
-
         // url parameters to filter items
         const urlSearchParams = new URLSearchParams(window.location.search);
         const params = Object.fromEntries(urlSearchParams.entries());
@@ -127,15 +119,25 @@
             var source = media.URL;
             var img = new Image();
             img.onload = () => {
-                var wr = imageWidth / img.width;
-                var h = wr * img.height;
-                var cont = '<div class="media" style="height:' + h + 'px; width: ' + imageWidth + 'px; ">';
+                var w, h, wr;
+
+                // fixed width
+                // w = 0.9 * wrapper.clientWidth;
+                // wr = w / img.width;
+                // h = wr * img.height;
+
+                // fixed height
+                h = wrapper.clientHeight;
+                wr = h / img.height;
+                w = wr * img.width;
+
+                var cont = '<div class="media" style="height:' + h + 'px; width: ' + w + 'px; ">';
                 cont += "<div class='overlay'>"
                 cont += hash.toUpperCase() + "<br><a href='jsCanvas/?i=" + url + "&hash=" + hash + "'>" + url + "</a>"
                 if (source.length > 0) cont += "<br><a href='" + source + "' target='_blank'>@source</a>"
                 cont += '</div><img style="width:100%; height:100%;" src="' + img.src + '"/>';
-                cont += '<button onclick=\'javascript:like("' + hash + '");\'>Like</button>';
-                cont += '<button onclick=\'javascript:dislike("' + hash + '");\'>Dislike</button>';
+                cont += media.Likes + ' <button onclick=\'javascript:like("' + hash + '");\'>Like</button>';
+                cont += '<button onclick=\'javascript:dislike("' + hash + '");\'>Dislike</button> ' + media.Dislikes;
                 if (desc) {
                     cont += "<div class='details'>" + desc + "</div>";
                 }
@@ -152,10 +154,12 @@
         }
 
         function video(i, hash, media) {
+            var w = 1000;
+            if (wrapper.clientWidth < w) w = wrapper.clientWidth - 20;
             var url = media.Path;
             var desc = media.Desc;
             var source = media.URL;
-            var cont = '<div class="media" style="height:100%; width: ' + imageWidth + 'px; ">';
+            var cont = '<div class="media" style="height:100%; width: ' + w + 'px; ">';
             cont += "<div class='overlay'>"
             cont += hash.toUpperCase() + "<br>" + url
             if (source.length > 0) cont += "<br><a href='" + source + "' target='_blank'>@source</a>"
@@ -306,6 +310,30 @@
         } else alert("list.js load error. Regen using mediaindexer.");
 
         addEvent(wrapper, "scroll", scroller);
+        addEvent(wrapper, "dblclick", (e) => {
+            if (wrapper.requestFullscreen) {
+                wrapper.requestFullscreen();
+            } else if (wrapper.mozRequestFullScreen) {
+                wrapper.mozRequestFullScreen();
+            } else if (wrapper.webkitRequestFullscreen) {
+                wrapper.webkitRequestFullscreen();
+            } else if (wrapper.msRequestFullscreen) {
+                wrapper.msRequestFullscreen();
+            }
+        })
+
+        function heartBeat() {
+            // send a heartbeat to server every minute
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "/api/heartbeat/", true);
+            xhttp.onload = function() {
+                setTimeout(() => {
+                    heartBeat();
+                }, 60000);
+            };
+            xhttp.send();
+        }
+        heartBeat();
     </script>
 </body>
 
