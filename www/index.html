@@ -143,6 +143,7 @@
             var url = media.Path;
             var desc = media.Desc;
             var source = media.URL;
+            imgLoading = true;
             var img = new Image();
             img.onload = () => {
                 var w, h, wr;
@@ -176,7 +177,6 @@
                 imgLoading = false;
             }, 5000);
             img.src = url;
-            imgLoading = true;
         }
 
         function video(i, hash, media) {
@@ -263,7 +263,7 @@
             }
 
             // add more contents if user scrolled down enough
-            if (!imgLoading && wrapper.scrollTop + wrapper.offsetHeight + 1200 > content.offsetHeight) {
+            if (!imgLoading && wrapper.scrollTop + wrapper.offsetHeight + 1000 > content.offsetHeight) {
                 LoadContent();
             }
 
