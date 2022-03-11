@@ -119,7 +119,7 @@ S:<input
 </select>
 
 <div class="colorbox">
-    <b>Color</b>
+    <b>Fill Color</b>
     <div class="colors">
         {#each $App.webcolors as color}
             <p
@@ -128,6 +128,7 @@ S:<input
                 on:click={(e) => handleSelectColor(e, color)}
                 on:contextmenu={(e) => {
                     e.preventDefault();
+                    e.stopPropagation();
                     App.UpdateShadow(color);
                     Canvas.Redraw($App.cvDynamic, $App.texts, true);
                 }}
@@ -146,6 +147,17 @@ S:<input
         value="30"
         title="Font size"
         on:change={handleUpdateSize}
+        on:mousewheel={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.deltaY < 0) {
+                e.target.valueAsNumber += 10;
+            } else {
+                e.target.value -= 10;
+            }
+            App.UpdateSize(e.target.value);
+            Canvas.Redraw($App.cvDynamic, $App.texts, true);
+        }}
     />
 </div>
 
@@ -159,6 +171,17 @@ S:<input
         value="-1"
         title="Text fit width"
         on:change={handleUpdateFitwidth}
+        on:mousewheel={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.deltaY < 0) {
+                e.target.valueAsNumber += 5;
+            } else {
+                e.target.value -= 5;
+            }
+            App.UpdateFitwidth(e.target.value);
+            Canvas.Redraw($App.cvDynamic, $App.texts, true);
+        }}
     />
 </div>
 
@@ -168,14 +191,41 @@ S:<input
         type="range"
         min="-90"
         max="90"
-        step="10"
+        step="5"
         value="0"
         title="Text rotation"
         on:change={(e) => {
             App.SetAngle(e.target.value);
             Canvas.Redraw($App.cvDynamic, $App.texts, true);
         }}
+        on:mousewheel={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.deltaY < 0) {
+                e.target.valueAsNumber += 5;
+            } else {
+                e.target.value -= 5;
+            }
+            App.SetAngle(e.target.value);
+            Canvas.Redraw($App.cvDynamic, $App.texts, true);
+        }}
     />
+</div>
+
+<div class="colorbox">
+    <b>Outline Color</b>
+    <div class="colors">
+        {#each $App.webcolors as color}
+            <p
+                style="background: {color}"
+                title={color}
+                on:click={(e) => {
+                    App.UpdateShadow(color);
+                    Canvas.Redraw($App.cvDynamic, $App.texts, true);
+                }}
+            />
+        {/each}
+    </div>
 </div>
 
 <div class="slider">
@@ -188,6 +238,17 @@ S:<input
         value="0"
         title="Stroke thickness"
         on:change={(e) => {
+            App.UpdateThickness(e.target.value);
+            Canvas.Redraw($App.cvDynamic, $App.texts, true);
+        }}
+        on:mousewheel={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.deltaY < 0) {
+                e.target.valueAsNumber += 1;
+            } else {
+                e.target.value -= 1;
+            }
             App.UpdateThickness(e.target.value);
             Canvas.Redraw($App.cvDynamic, $App.texts, true);
         }}
@@ -207,6 +268,17 @@ S:<input
             App.UpdateBlur(e.target.value);
             Canvas.Redraw($App.cvDynamic, $App.texts, true);
         }}
+        on:mousewheel={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.deltaY < 0) {
+                e.target.valueAsNumber += 5;
+            } else {
+                e.target.value -= 5;
+            }
+            App.UpdateBlur(e.target.value);
+            Canvas.Redraw($App.cvDynamic, $App.texts, true);
+        }}
     />
 </div>
 
@@ -223,6 +295,17 @@ S:<input
             App.UpdateShadowX(e.target.value);
             Canvas.Redraw($App.cvDynamic, $App.texts, true);
         }}
+        on:mousewheel={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.deltaY < 0) {
+                e.target.valueAsNumber += 1;
+            } else {
+                e.target.value -= 1;
+            }
+            App.UpdateShadowX(e.target.value);
+            Canvas.Redraw($App.cvDynamic, $App.texts, true);
+        }}
     />
 </div>
 
@@ -236,6 +319,17 @@ S:<input
         value="0"
         title="Shadow offset Y"
         on:change={(e) => {
+            App.UpdateShadowY(e.target.value);
+            Canvas.Redraw($App.cvDynamic, $App.texts, true);
+        }}
+        on:mousewheel={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.deltaY < 0) {
+                e.target.valueAsNumber += 1;
+            } else {
+                e.target.value -= 1;
+            }
             App.UpdateShadowY(e.target.value);
             Canvas.Redraw($App.cvDynamic, $App.texts, true);
         }}
