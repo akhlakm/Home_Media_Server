@@ -138,6 +138,7 @@ export const Canvas = (function() {
                 bold: false,
                 smallcaps: false,
                 italic: false,
+                angle: 0,
             }
             newtext.id = textList.length;
             newtext.value = "text" + textList.length;
@@ -210,17 +211,19 @@ export const Canvas = (function() {
                 if (text.bold) fontstyle = "bold " + fontstyle;
                 if (text.smallcaps) fontstyle = "small-caps " + fontstyle;
                 if (text.italic) fontstyle = "italic " + fontstyle;
-                console.log("fontstyle:", fontstyle)
+                // console.log("fontstyle:", fontstyle)
                 ctx.font = fontstyle;
                 ctx.textAlign = text.align;
 
                 if (text.thickness > 0) {
                     ctx.strokeStyle = text.shadow;
                     ctx.lineWidth = text.thickness;
+                    console.log("thickness:", text.thickness, "stroke:", text.shadow);
                 }
                 if (text.blur > 0) {
                     ctx.shadowColor = text.shadow;
                     ctx.shadowBlur = text.blur;
+                    console.log("blur:", text.blur, "shadow:", text.shadow);
                 }
                 if (text.blur > 0 || text.thickness > 0)
                     printAtWordWrap(
@@ -237,8 +240,8 @@ export const Canvas = (function() {
                 var rgb = hex2rgb(text.color);
                 var alpha = text.alpha / 255;
                 ctx.fillStyle = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
-                console.log("RGB:", rgb, "HEX:", text.color, "ALPHA:", alpha);
-                console.log("fillStyle:", ctx.fillStyle);
+                // console.log("RGB:", rgb, "HEX:", text.color, "ALPHA:", alpha);
+                // console.log("fillStyle:", ctx.fillStyle);
                 var dim = printAtWordWrap(
                     ctx,
                     text.value,

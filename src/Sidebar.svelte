@@ -126,6 +126,11 @@ S:<input
                 style="background: {color}"
                 title={color}
                 on:click={(e) => handleSelectColor(e, color)}
+                on:contextmenu={(e) => {
+                    e.preventDefault();
+                    App.UpdateShadow(color);
+                    Canvas.Redraw($App.cvDynamic, $App.texts, true);
+                }}
             />
         {/each}
     </div>
@@ -152,6 +157,51 @@ S:<input
         value="-1"
         title="Text fit width"
         on:change={handleUpdateFitwidth}
+    />
+</div>
+
+<div class="slider">
+    <input
+        type="range"
+        min="-180"
+        max="180"
+        step="1"
+        value="0"
+        title="Text rotation"
+        on:change={(e) => {
+            App.SetAngle(e.target.value);
+            Canvas.Redraw($App.cvDynamic, $App.texts, true);
+        }}
+    />
+</div>
+
+<div class="slider">
+    <input
+        type="range"
+        min="0"
+        max="100"
+        step="1"
+        value="0"
+        title="Blur"
+        on:change={(e) => {
+            App.UpdateBlur(e.target.value);
+            Canvas.Redraw($App.cvDynamic, $App.texts, true);
+        }}
+    />
+</div>
+
+<div class="slider">
+    <input
+        type="range"
+        min="0"
+        max="20"
+        step="1"
+        value="0"
+        title="Stroke thickness"
+        on:change={(e) => {
+            App.UpdateThickness(e.target.value);
+            Canvas.Redraw($App.cvDynamic, $App.texts, true);
+        }}
     />
 </div>
 

@@ -112,6 +112,11 @@ const AppModel = function() {
             d.texts[d.selected].smallcaps = b;
             return d;
         }),
+        SetAngle: a => update(d => {
+            if (d.selected === null) return d;
+            d.texts[d.selected].angle = a;
+            return d;
+        }),
         UpdateSize: f => update(d => {
             if (d.selected === null) return d;
             d.texts[d.selected].size = f;
