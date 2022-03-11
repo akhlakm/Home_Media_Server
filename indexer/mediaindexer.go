@@ -44,9 +44,12 @@ func AddDislike(hash string) {
 	isWalking = false
 	if fItem, exists := list[hash]; exists {
 		// fmt.Println("Dislike:", hash)
-		// Remove the file if disliked
-		os.Remove(fItem.Path)
-		delete(list, hash)
+		// Remove the file if disliked and never liked
+		if fItem.Likes == 0 {
+			os.Remove(fItem.Path)
+			delete(list, hash)
+			fmt.Println("Delete:", fItem.Path)
+		}
 	}
 }
 
