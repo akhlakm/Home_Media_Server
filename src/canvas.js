@@ -139,6 +139,8 @@ export const Canvas = (function() {
                 smallcaps: false,
                 italic: false,
                 angle: 0,
+                shadowX: 0,
+                shadowY: 0,
             }
             newtext.id = textList.length;
             newtext.value = "text" + textList.length;
@@ -215,22 +217,36 @@ export const Canvas = (function() {
                 ctx.font = fontstyle;
                 ctx.textAlign = text.align;
 
+                ctx.save();
+                var X = text.x;
+                var Y = text.y;
+
+                if (text.angle !== 0) {
+                    // translate to the center of the text
+                    ctx.translate(X, Y);
+                    // text needs to be drawn starting from top left on the new context
+                    X = 0;
+                    Y = 0;
+                    // rotate the context
+                    ctx.rotate(text.angle * Math.PI / 180);
+                }
+
                 if (text.thickness > 0) {
                     ctx.strokeStyle = text.shadow;
                     ctx.lineWidth = text.thickness;
-                    console.log("thickness:", text.thickness, "stroke:", text.shadow);
                 }
                 if (text.blur > 0) {
                     ctx.shadowColor = text.shadow;
                     ctx.shadowBlur = text.blur;
-                    console.log("blur:", text.blur, "shadow:", text.shadow);
+                    ctx.shadowOffsetX = text.shadowX;
+                    ctx.shadowOffsetY = text.shadowY;
                 }
                 if (text.blur > 0 || text.thickness > 0)
                     printAtWordWrap(
                         ctx,
                         text.value,
-                        text.x,
-                        text.y,
+                        X,
+                        Y,
                         text.size,
                         (canvas.width * text.fitwidth) / 100,
                         true
@@ -245,14 +261,16 @@ export const Canvas = (function() {
                 var dim = printAtWordWrap(
                     ctx,
                     text.value,
-                    text.x,
-                    text.y,
+                    X,
+                    Y,
                     text.size,
                     (canvas.width * text.fitwidth) / 100,
                     false
                 );
                 textList[i].width = dim[0];
                 textList[i].height = dim[1];
+
+                ctx.restore();
             }
 
             return textList;

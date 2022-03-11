@@ -142,6 +142,16 @@ const AppModel = function() {
             d.texts[d.selected].shadow = f;
             return d;
         }),
+        UpdateShadowX: f => update(d => {
+            if (d.selected === null) return d;
+            d.texts[d.selected].shadowX = f;
+            return d;
+        }),
+        UpdateShadowY: f => update(d => {
+            if (d.selected === null) return d;
+            d.texts[d.selected].shadowY = f;
+            return d;
+        }),
         UpdateFitwidth: f => update(d => {
             if (d.selected === null) return d;
             d.texts[d.selected].fitwidth = f;

@@ -137,10 +137,11 @@ S:<input
 </div>
 
 <div class="slider">
+    Font Size:
     <input
         type="range"
         min="5"
-        max="250"
+        max="500"
         step="1"
         value="30"
         title="Font size"
@@ -149,6 +150,7 @@ S:<input
 </div>
 
 <div class="slider">
+    Width:
     <input
         type="range"
         min="-1"
@@ -161,11 +163,12 @@ S:<input
 </div>
 
 <div class="slider">
+    Rotation:
     <input
         type="range"
-        min="-180"
-        max="180"
-        step="1"
+        min="-90"
+        max="90"
+        step="10"
         value="0"
         title="Text rotation"
         on:change={(e) => {
@@ -176,6 +179,23 @@ S:<input
 </div>
 
 <div class="slider">
+    Stroke:
+    <input
+        type="range"
+        min="0"
+        max="20"
+        step="1"
+        value="0"
+        title="Stroke thickness"
+        on:change={(e) => {
+            App.UpdateThickness(e.target.value);
+            Canvas.Redraw($App.cvDynamic, $App.texts, true);
+        }}
+    />
+</div>
+
+<div class="slider">
+    Shadow:
     <input
         type="range"
         min="0"
@@ -191,15 +211,32 @@ S:<input
 </div>
 
 <div class="slider">
+    Shadow X:
     <input
         type="range"
-        min="0"
+        min="-20"
         max="20"
         step="1"
         value="0"
-        title="Stroke thickness"
+        title="Shadow offset X"
         on:change={(e) => {
-            App.UpdateThickness(e.target.value);
+            App.UpdateShadowX(e.target.value);
+            Canvas.Redraw($App.cvDynamic, $App.texts, true);
+        }}
+    />
+</div>
+
+<div class="slider">
+    Shadow Y:
+    <input
+        type="range"
+        min="-20"
+        max="20"
+        step="1"
+        value="0"
+        title="Shadow offset Y"
+        on:change={(e) => {
+            App.UpdateShadowY(e.target.value);
             Canvas.Redraw($App.cvDynamic, $App.texts, true);
         }}
     />
@@ -281,7 +318,8 @@ S:<input
         border: 1px solid #242424;
     }
     .slider {
-        padding: 1em;
+        padding: 5px 1em;
+        text-align: left;
     }
 
     .btn {
