@@ -137,9 +137,9 @@ func calcDestPath(s, hash, www string) string {
 	wwwmp4 := www + "mp4/"
 
 	// ignore items if we are inside the www directory
-	// if strings.HasPrefix(s, wwwimg) || strings.HasPrefix(s, wwwgif) || strings.HasPrefix(s, wwwmp4) {
-	// 	return ""
-	// }
+	if strings.HasPrefix(s, wwwimg) || strings.HasPrefix(s, wwwgif) || strings.HasPrefix(s, wwwmp4) {
+		return ""
+	}
 
 	// path to move to
 	parentdir := filepath.Base(filepath.Dir(s))
