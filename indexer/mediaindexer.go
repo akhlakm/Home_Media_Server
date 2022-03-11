@@ -32,24 +32,28 @@ var isWalking bool = false
 var start time.Time
 
 func AddLike(hash string) {
+	isWalking = false
 	if fItem, exists := list[hash]; exists {
-		fmt.Println("Like:", hash)
+		// fmt.Println("Like:", hash)
 		fItem.Likes++
 		list[hash] = fItem
 	}
 }
 
 func AddDislike(hash string) {
+	isWalking = false
 	if fItem, exists := list[hash]; exists {
-		fmt.Println("Dislike:", hash)
-		fItem.Dislikes++
-		list[hash] = fItem
+		// fmt.Println("Dislike:", hash)
+		// Remove the file if disliked
+		os.Remove(fItem.Path)
+		delete(list, hash)
 	}
 }
 
 func AddCaptionFile(src, hash string) {
+	isWalking = false
 	if fItem, exists := list[hash]; exists {
-		fmt.Println("New caption:", hash)
+		// fmt.Println("New caption:", hash)
 		MoveFile(src, fItem.Path)
 		fItem.Dislikes = 0;
 		fItem.Desc = fItem.Desc + " caption";
@@ -209,6 +213,12 @@ func addFiles(retChan chan int, root string, www string) {
 				return err
 			}
 
+			// if walking stopped, return
+			if !isWalking {
+				retChan <- tot
+				return nil
+			}
+
 			// if file is recorded in the db
 			if _, exists := list[hash]; exists {
 				// if it actually exists in www
@@ -228,6 +238,12 @@ func addFiles(retChan chan int, root string, www string) {
 			if err == nil {
 				// size in MB
 				size = float32(fi.Size()) / 1024 / 1024
+			}
+
+			// if walking stopped, return
+			if !isWalking {
+				retChan <- tot
+				return nil
 			}
 
 			// add item
