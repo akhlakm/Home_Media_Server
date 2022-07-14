@@ -19,7 +19,7 @@ var embedFs embed.FS
 
 func main() {
     // Named args
-	root := flag.String("d", "/media/i/", "The inbox directory path to index")
+	root := flag.String("d", "/media/i/_inbox", "The inbox directory path to index")
 	walk := flag.Bool("walk", false, "Specify to walk the root directory")
 	serve := flag.Bool("serve", false, "Specify to serve on HTTP")
 	flag.Parse()
